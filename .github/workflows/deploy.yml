@@ -50,7 +50,7 @@ jobs:
             git pull origin main
 
             echo "Install composer"
-            composer install --no-dev --optimize-autoloader
+            composer install --no-dev --optimize-autoloader --no-interaction
 
             echo "Load NVM"
             export NVM_DIR="$HOME/.nvm"
