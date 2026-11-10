@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import { BadgeCheck, ChartLine, Flag, LayoutGrid, ScrollText, Settings, ShieldCheck, Tags, Users } from 'lucide-react';
+import { BadgeCheck, BriefcaseBusiness, Building2, ChartLine, Flag, Globe, GraduationCap, LayoutGrid, ScrollText, Settings, ShieldCheck, Tags, Users } from 'lucide-react';
 import { MotionConfig } from 'motion/react';
 import type { ReactNode } from 'react';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
@@ -38,6 +38,16 @@ export function AdminLayout({ children }: { children: ReactNode }) {
         { key: '/admin/moderasi', label: 'Moderasi Konten', icon: ShieldCheck, href: admin.moderation.index.url(), badge: badges?.moderation },
         { key: '/admin/laporan', label: 'Laporan', icon: Flag, href: admin.reports.index.url(), badge: badges?.reports },
         { key: '/admin/kategori', label: 'Kategori', icon: Tags, href: admin.categories.index.url() },
+        {
+            key: '/admin/scraper',
+            label: 'Scraper',
+            icon: Globe,
+            children: [
+                { key: '/admin/scraper/beasiswa', label: 'Beasiswa', icon: GraduationCap, href: admin.scrapers.index.url('beasiswa') },
+                { key: '/admin/scraper/magang', label: 'Magang', icon: Building2, href: admin.scrapers.index.url('magang') },
+                { key: '/admin/scraper/lowongan', label: 'Karier', icon: BriefcaseBusiness, href: admin.scrapers.index.url('lowongan') },
+            ],
+        },
         { key: '/admin/audit-log', label: 'Audit Log', icon: ScrollText, href: admin.auditLogs.index.url() },
         { key: '/admin/analitik', label: 'Analitik', icon: ChartLine, href: admin.analytics.url() },
     ];
@@ -45,7 +55,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
 
     // Longest matching prefix wins, so /admin does not swallow /admin/pengguna.
     const active =
-        [...nav, ...accountNav]
+        [...nav, ...nav.flatMap((n) => n.children ?? []), ...accountNav]
             .map((n) => n.key)
             .filter((key) => path === key || path.startsWith(`${key}/`))
             .sort((a, b) => b.length - a.length)[0] ?? '/admin';

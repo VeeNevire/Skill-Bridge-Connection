@@ -114,17 +114,46 @@ export function SearchInput({ value, onSearch, placeholder }: { value: string; o
     );
 }
 
-export function Pagination<T>({ paginator, only }: { paginator: Paginated<T>; only: string[] }) {
+export const PER_PAGE_OPTIONS = [10, 25, 50];
+
+/** Page links; pass `onPerPage` to also let the viewer pick how many rows a page shows. */
+export function Pagination<T>({ paginator, only, onPerPage }: { paginator: Paginated<T>; only: string[]; onPerPage?: (perPage: number) => void }) {
+    const perPage = onPerPage && paginator.total > 0 && (
+        <label className="flex items-center gap-1.5 text-[12px] text-black/45">
+            Tampilkan
+            <select
+                value={paginator.per_page}
+                onChange={(e) => onPerPage(Number(e.target.value))}
+                className="h-8 rounded-lg border border-black/10 bg-white px-2 text-[12.5px] text-ink outline-none focus:border-brand"
+            >
+                {PER_PAGE_OPTIONS.map((n) => (
+                    <option key={n} value={n}>
+                        {n}
+                    </option>
+                ))}
+            </select>
+            per halaman
+        </label>
+    );
+
     if (paginator.last_page <= 1) {
-        return paginator.total > 0 ? <p className="mt-4 text-[12px] text-black/45">{paginator.total} data</p> : null;
+        return paginator.total > 0 ? (
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-[12px] text-black/45">{paginator.total} data</p>
+                {perPage}
+            </div>
+        ) : null;
     }
 
     return (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[12px] text-black/45">
-                Menampilkan {paginator.from}–{paginator.to} dari {paginator.total}
-            </p>
-            <nav className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-3">
+                <p className="text-[12px] text-black/45">
+                    Menampilkan {paginator.from}–{paginator.to} dari {paginator.total}
+                </p>
+                {perPage}
+            </div>
+            <nav className="flex flex-wrap items-center gap-1">
                 {paginator.links.map((link, i) => {
                     const isPrev = i === 0;
                     const isNext = i === paginator.links.length - 1;
@@ -194,7 +223,7 @@ export function Badge({ tone = 'neutral', children }: { tone?: Tone; children: R
 }
 
 export const reviewTone: Record<string, Tone> = { menunggu: 'amber', disetujui: 'green', ditolak: 'red' };
-export const typeTone: Record<string, Tone> = { beasiswa: 'brand', kelas: 'sky', lowongan: 'green' };
+export const typeTone: Record<string, Tone> = { beasiswa: 'brand', kelas: 'sky', lowongan: 'green', magang: 'amber' };
 export const severityTone: Record<string, Tone> = { rendah: 'neutral', sedang: 'amber', tinggi: 'red' };
 
 export function EmptyState({ icon: Icon = Inbox, title, text }: { icon?: LucideIcon; title: string; text?: string }) {
@@ -209,7 +238,7 @@ export function EmptyState({ icon: Icon = Inbox, title, text }: { icon?: LucideI
     );
 }
 
-export function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
+export function Modal({ open, onClose, title, children, size = 'md' }: { open: boolean; onClose: () => void; title: string; children: ReactNode; size?: 'md' | 'lg' }) {
     useEffect(() => {
         if (!open) {
             return;
@@ -239,15 +268,19 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 16, scale: 0.97 }}
                         transition={{ duration: 0.25, ease: easeOut }}
-                        className="relative w-full max-w-md rounded-2xl bg-white p-5 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.4)]"
+                        className={cn(
+                            // Capped to the viewport; long forms scroll inside instead of running off-screen.
+                            'relative flex max-h-[calc(100dvh-2rem)] w-full flex-col rounded-2xl bg-white p-5 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.4)]',
+                            size === 'lg' ? 'max-w-2xl' : 'max-w-md',
+                        )}
                     >
-                        <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-[15px] font-semibold">{title}</h2>
+                        <div className="mb-4 flex shrink-0 items-center justify-between gap-3">
+                            <h2 className="min-w-0 truncate text-[15px] font-semibold">{title}</h2>
                             <button type="button" aria-label="Tutup" onClick={onClose} className="rounded-lg p-1 text-black/40 hover:bg-zinc-100 hover:text-ink">
                                 <X className="size-4" />
                             </button>
                         </div>
-                        {children}
+                        <div className="-mx-5 min-h-0 overflow-y-auto px-5 pb-0.5">{children}</div>
                     </motion.div>
                 </div>
             )}

@@ -11,6 +11,7 @@ enum OpportunityType: string
     case Scholarship = 'beasiswa';
     case Course = 'kelas';
     case Job = 'lowongan';
+    case Internship = 'magang';
 
     public function label(): string
     {
@@ -18,6 +19,7 @@ enum OpportunityType: string
             self::Scholarship => 'Beasiswa',
             self::Course => 'Kelas',
             self::Job => 'Lowongan',
+            self::Internship => 'Magang',
         };
     }
 }

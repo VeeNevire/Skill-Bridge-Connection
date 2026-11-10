@@ -12,6 +12,7 @@
         "php": "^8.3",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/framework": "^13.17",
+        "laravel/horizon": "*",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14"
     },
@@ -92,6 +93,10 @@
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ],
+        "tunnel": [
+            "Composer\\Config::disableProcessTimeout",
+            "ssh -N -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -L 8642:127.0.0.1:8642 root@76.13.22.54"
         ]
     },
     "extra": {

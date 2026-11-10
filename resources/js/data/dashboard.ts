@@ -4,6 +4,7 @@ import { edit as accountSettings } from '@/routes/account';
 import {
     BookOpen,
     BriefcaseBusiness,
+    Building2,
     FilePen,
     GraduationCap,
     IdCard,
@@ -54,6 +55,12 @@ export const navItems: NavItem[] = [
         label: 'Belajar',
         icon: BookOpen,
         href: learningIndex.url(),
+    },
+    {
+        key: 'internship',
+        label: 'Magang',
+        icon: Building2,
+        href: catalog.url('magang'),
     },
     {
         key: 'career',

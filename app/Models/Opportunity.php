@@ -23,7 +23,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $deadline
  * @property ReviewStatus $status
  */
-#[Fillable(['type', 'title', 'summary', 'details', 'deadline', 'source_url', 'organization_id', 'category_id', 'accepts_applications'])]
+#[Fillable(['type', 'title', 'summary', 'details', 'deadline', 'source_url', 'organization_id', 'category_id', 'accepts_applications', 'scrape_source_id'])]
 class Opportunity extends Model
 {
     /** @use HasFactory<OpportunityFactory> */
@@ -59,6 +59,14 @@ class Opportunity extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * @return BelongsTo<ScrapeSource, $this>
+     */
+    public function scrapeSource(): BelongsTo
+    {
+        return $this->belongsTo(ScrapeSource::class);
     }
 
     /**

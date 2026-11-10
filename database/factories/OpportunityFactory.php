@@ -26,6 +26,10 @@ class OpportunityFactory extends Factory
                 'Kelas '.fake()->randomElement(['Dasar Analisis Data', 'Menulis Esai', 'UI/UX Design', 'Public Speaking', 'Bahasa Inggris Akademik']),
                 ['durasi' => fake()->numberBetween(2, 12).' minggu', 'level' => fake()->randomElement(['Pemula', 'Menengah'])],
             ],
+            OpportunityType::Internship => [
+                'Magang '.fake()->randomElement(['Frontend Developer', 'Data Analyst', 'Product Designer', 'Marketing']),
+                ['tipe_kerja' => 'Magang', 'lokasi' => fake('id_ID')->city()],
+            ],
             OpportunityType::Job => [
                 fake()->randomElement(['Magang', 'Junior', 'Staf']).' '.fake()->randomElement(['Frontend Developer', 'Data Analyst', 'Product Designer', 'Marketing', 'HR']),
                 ['tipe_kerja' => fake()->randomElement(['Penuh waktu', 'Magang', 'Paruh waktu']), 'lokasi' => fake('id_ID')->city()],

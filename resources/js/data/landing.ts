@@ -11,6 +11,7 @@ export const brand = {
 export const navLinks = [
     { label: 'Beasiswa', href: catalog.url('beasiswa') },
     { label: 'Belajar', href: catalog.url('kelas') },
+    { label: 'Magang', href: catalog.url('magang') },
     { label: 'Modul', href: '#modul' },
     { label: 'Karier', href: catalog.url('lowongan') },
 ];

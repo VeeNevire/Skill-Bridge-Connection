@@ -25,7 +25,7 @@ export type CursorPaginated<T> = {
 };
 
 export type ReviewStatus = 'menunggu' | 'disetujui' | 'ditolak';
-export type OpportunityType = 'beasiswa' | 'kelas' | 'lowongan';
+export type OpportunityType = 'beasiswa' | 'kelas' | 'lowongan' | 'magang';
 export type ReportStatus = 'terbuka' | 'ditindak' | 'diabaikan';
 export type ReportSeverity = 'rendah' | 'sedang' | 'tinggi';
 
@@ -89,6 +89,37 @@ export type ReportRow = {
 };
 
 export type AuditLogRow = { id: number; action: string; description: string; created_at: string; user: { id: number; name: string } | null };
+
+export type ScrapeSourceRow = {
+    id: number;
+    name: string;
+    type: 'beasiswa' | 'magang' | 'lowongan';
+    url: string | null;
+    keywords: string | null;
+    is_active: boolean;
+    schedule: 'harian' | 'menit' | 'mingguan' | null;
+    schedule_every: number | null;
+    schedule_time: string | null;
+    next_run_at: string | null;
+    schedule_label: string;
+    last_run_at: string | null;
+    last_status: string | null;
+    last_error: string | null;
+    last_count: number;
+    opportunities_count: number;
+};
+
+export type ManagedOpportunityRow = {
+    id: number;
+    title: string;
+    summary: string | null;
+    details: { penyelenggara?: string; lokasi?: string; jenjang?: string; tipe_kerja?: string } | null;
+    deadline: string | null;
+    source_url: string | null;
+    category_id: number | null;
+    scrape_source: { id: number; name: string } | null;
+    created_at: string;
+};
 
 export type CategoryRow = { id: number; name: string; slug: string; description: string | null; opportunities_count: number; created_at: string };
 

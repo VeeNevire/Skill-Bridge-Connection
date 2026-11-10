@@ -1,14 +1,17 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useState } from 'react';
+import type { FormEvent } from 'react';
 import { Pagination, SearchInput, useFilters } from '@/components/admin/ui';
 import { dashboard, home, login } from '@/routes';
 import { store as saveOpportunity } from '@/routes/applications';
-import { index, show } from '@/routes/catalog';
+import { ask, index, show } from '@/routes/catalog';
 import type { Paginated } from '@/types';
 import {
     DashboardLayout,
     ProfileSidebarCard,
 } from '@/components/dashboard/dashboard-layout';
 import { accountNavItems, navItems } from '@/data/dashboard';
+import { xsrfToken } from '@/lib/utils';
 
 type Opportunity = {
     id: number;
@@ -19,7 +22,9 @@ type Opportunity = {
     details: Record<string, unknown> | null;
     organization: { name: string } | null;
     category: { name: string } | null;
+    scrape_source: { name: string } | null;
 };
+type Source = { id: number; name: string; url: string; last_run_at: string | null };
 type Filters = {
     organizer?: string;
     deadline_before?: string;
@@ -28,23 +33,105 @@ type Filters = {
     category?: string;
     level?: string;
     location?: string;
+    per_page?: number;
 };
 const labels: Record<string, string> = {
     beasiswa: 'Beasiswa',
     kelas: 'Belajar',
     lowongan: 'Karier',
+    magang: 'Magang',
 };
+const askableTypes = ['beasiswa', 'magang', 'lowongan'];
+
+function AskAssistant({ type, label }: { type: string; label: string }) {
+    const [question, setQuestion] = useState('');
+    const [answer, setAnswer] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const submit = async (event: FormEvent) => {
+        event.preventDefault();
+        if (!question.trim() || loading) return;
+        setLoading(true);
+        setError('');
+        setAnswer('');
+        try {
+            const response = await fetch(ask.url(), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-XSRF-TOKEN': xsrfToken(),
+                },
+                body: JSON.stringify({ question, type }),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (response.ok) setAnswer(data.answer ?? '');
+            else
+                setError(
+                    data.message ??
+                        (response.status === 429
+                            ? 'Terlalu banyak pertanyaan. Tunggu sebentar.'
+                            : 'Gagal mendapatkan jawaban.'),
+                );
+        } catch {
+            setError('Koneksi terputus. Coba lagi.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <section className="mt-6 rounded-2xl border border-black/5 bg-white p-5">
+            <h2 className="text-base font-semibold">Tanya AI</h2>
+            <p className="mt-1 text-xs text-black/50">
+                Jawaban disusun dari data {label.toLowerCase()} yang dikumpulkan
+                dari website sumber. Selalu cek ulang di sumber resmi.
+            </p>
+            <form onSubmit={submit} className="mt-3 flex flex-col gap-2 sm:flex-row">
+                <label className="sr-only" htmlFor="ask-question">
+                    Pertanyaan
+                </label>
+                <input
+                    id="ask-question"
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    maxLength={1000}
+                    placeholder={`Contoh: ${label.toLowerCase()} untuk mahasiswa IT dengan tenggat bulan ini?`}
+                    className="h-10 flex-1 rounded-xl border border-black/10 px-3 text-sm outline-none focus:border-brand"
+                />
+                <button
+                    type="submit"
+                    disabled={loading || !question.trim()}
+                    className="h-10 rounded-xl bg-ink px-4 text-sm font-medium text-white disabled:opacity-60"
+                >
+                    {loading ? 'Memproses…' : 'Tanya'}
+                </button>
+            </form>
+            <div aria-live="polite">
+                {error && <p className="mt-3 text-sm text-cta">{error}</p>}
+                {answer && (
+                    <p className="mt-3 whitespace-pre-line rounded-xl bg-surface p-4 text-sm leading-relaxed text-black/75">
+                        {answer}
+                    </p>
+                )}
+            </div>
+        </section>
+    );
+}
 
 export default function Catalog({
     opportunities,
     filters,
     type,
     categories,
+    sources,
 }: {
     opportunities: Paginated<Opportunity>;
     filters: Filters;
     type: string;
     categories: { id: number; name: string }[];
+    sources: Source[];
 }) {
     const apply = useFilters(index.url(type), filters, [
         'opportunities',
@@ -60,6 +147,28 @@ export default function Catalog({
                 Jelajahi peluang yang telah ditinjau. Periksa informasi dan
                 pendaftaran melalui sumber resmi.
             </p>
+            {sources.length > 0 && (
+                <section className="mt-6">
+                    <h2 className="text-sm font-semibold">Sumber informasi</h2>
+                    <ul className="mt-2 flex flex-wrap gap-2">
+                        {sources.map((source) => (
+                            <li key={source.id}>
+                                <a
+                                    href={source.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-block rounded-full border border-black/5 bg-white px-3 py-1.5 text-xs text-black/65 hover:border-brand/40 hover:text-brand"
+                                >
+                                    {source.name}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
+            {user && askableTypes.includes(type) && (
+                <AskAssistant type={type} label={title} />
+            )}
             <div className="mt-6 flex flex-wrap gap-3">
                 <SearchInput
                     value={filters.q ?? ''}
@@ -126,7 +235,7 @@ export default function Catalog({
                         }
                     />
                 </label>
-                {type === 'lowongan' && (
+                {(type === 'lowongan' || type === 'magang') && (
                     <>
                         <input
                             aria-label="Lokasi pekerjaan"
@@ -194,6 +303,10 @@ export default function Catalog({
                             </h2>
                             <p className="mt-1 text-xs text-black/50">
                                 {item.organization?.name ??
+                                    (item.details?.penyelenggara as
+                                        | string
+                                        | undefined) ??
+                                    item.scrape_source?.name ??
                                     'Penyelenggara belum dicantumkan'}
                             </p>
                             <p className="mt-3 flex-1 text-sm leading-relaxed text-black/60">
@@ -238,13 +351,19 @@ export default function Catalog({
             <Pagination
                 paginator={opportunities}
                 only={['opportunities', 'filters']}
+                onPerPage={(per_page) => apply({ per_page })}
             />
         </section>
     );
 
     if (participant) {
         const active =
-            { beasiswa: 'scholarship', kelas: 'academy', lowongan: 'career' }[
+            {
+                beasiswa: 'scholarship',
+                kelas: 'academy',
+                lowongan: 'career',
+                magang: 'internship',
+            }[
                 type
             ] ?? 'scholarship';
         return (

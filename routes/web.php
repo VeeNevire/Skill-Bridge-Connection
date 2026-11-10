@@ -13,6 +13,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LearningController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\MentoringController;
+use App\Http\Controllers\OpportunityAssistantController;
 use App\Http\Controllers\OpportunityCatalogController;
 use App\Http\Controllers\OpportunityDetailController;
 use App\Http\Controllers\OrganizationPortalController;
@@ -45,6 +46,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::put('/pengaturan-akun', [AccountSettingsController::class, 'update'])->name('account.update');
     Route::put('/pengaturan-akun/kata-sandi', [AccountSettingsController::class, 'password'])->name('account.password');
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::post('/peluang/tanya', OpportunityAssistantController::class)->middleware('throttle:10,1')->name('catalog.ask');
     Route::post('/panduan/{tour}/selesai', [TourController::class, 'complete'])->name('tours.complete');
     Route::middleware('role:peserta')->group(function () {
         Route::post('/peluang/{opportunity}/laporan', [OpportunityDetailController::class, 'report'])->middleware('throttle:5,1')->name('catalog.report');
@@ -116,6 +118,21 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
         ->only(['index', 'store', 'update', 'destroy'])
         ->parameters(['kategori' => 'category'])
         ->names('categories');
+
+    // Scraper menu: one page per type (Beasiswa, Magang, Karier) with sources and hand-entered listings.
+    Route::prefix('scraper')->name('scrapers.')->group(function () {
+        Route::controller(Admin\ScrapeSourceController::class)->group(function () {
+            Route::get('{type}', 'index')->whereIn('type', Admin\ScrapeSourceController::TYPES)->name('index');
+            Route::post('{type}/sumber', 'store')->whereIn('type', Admin\ScrapeSourceController::TYPES)->name('store');
+            Route::patch('sumber/{scrapeSource}', 'update')->name('update');
+            Route::delete('sumber/{scrapeSource}', 'destroy')->name('destroy');
+            Route::post('sumber/{scrapeSource}/jalankan', 'run')->name('run');
+            Route::post('sumber/{scrapeSource}/pratinjau', 'preview')->name('preview');
+        });
+        Route::post('{type}/peluang', [Admin\OpportunityController::class, 'store'])->whereIn('type', Admin\ScrapeSourceController::TYPES)->name('opportunities.store');
+        Route::patch('peluang/{opportunity}', [Admin\OpportunityController::class, 'update'])->name('opportunities.update');
+        Route::delete('peluang/{opportunity}', [Admin\OpportunityController::class, 'destroy'])->name('opportunities.destroy');
+    });
 
     Route::get('audit-log', [Admin\AuditLogController::class, 'index'])->name('audit-logs.index');
     Route::get('analitik', Admin\AnalyticsController::class)->name('analytics');

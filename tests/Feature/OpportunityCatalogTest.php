@@ -18,3 +18,11 @@ test('catalog supports search and filters', function () {
     $this->get(route('catalog.index', ['type' => 'beasiswa', 'q' => 'Sains', 'level' => 'S2', 'location' => 'Dalam negeri']))->assertOk()->assertInertia(fn (Assert $page) => $page->has('opportunities.data', 1)->where('opportunities.data.0.title', 'Beasiswa Sains'));
     $this->get(route('catalog.index', 'lain'))->assertNotFound();
 });
+
+test('catalog shows 10 per page by default and lets the viewer pick the page size', function () {
+    Opportunity::factory()->approved()->count(12)->create(['type' => OpportunityType::Internship]);
+
+    $this->get(route('catalog.index', 'magang'))->assertInertia(fn (Assert $page) => $page->has('opportunities.data', 10)->where('opportunities.last_page', 2));
+    $this->get(route('catalog.index', ['type' => 'magang', 'per_page' => 25]))->assertInertia(fn (Assert $page) => $page->has('opportunities.data', 12));
+    $this->get(route('catalog.index', ['type' => 'magang', 'per_page' => 999]))->assertSessionHasErrors('per_page');
+});
