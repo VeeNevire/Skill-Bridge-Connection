@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import {
     ArrowLeft,
     Atom,
@@ -78,19 +79,28 @@ export {
     X as CrossIcon,
 };
 
-export function ChevronIcon({ direction = 'right', ...props }: LucideProps & { direction?: 'left' | 'right' }) {
+export function ChevronIcon({
+    direction = 'right',
+    ...props
+}: LucideProps & { direction?: 'left' | 'right' }) {
     const Icon = direction === 'right' ? ChevronRight : ChevronLeft;
 
     return <Icon {...props} />;
 }
 
-export function EyeIcon({ off = false, ...props }: LucideProps & { off?: boolean }) {
+export function EyeIcon({
+    off = false,
+    ...props
+}: LucideProps & { off?: boolean }) {
     const Icon = off ? EyeOff : Eye;
 
     return <Icon {...props} />;
 }
 
-export function BookmarkIcon({ filled = false, ...props }: LucideProps & { filled?: boolean }) {
+export function BookmarkIcon({
+    filled = false,
+    ...props
+}: LucideProps & { filled?: boolean }) {
     return <Bookmark fill={filled ? 'currentColor' : 'none'} {...props} />;
 }
 
@@ -108,7 +118,10 @@ const moduleIcons: Record<ModuleKey, LucideIcon> = {
     copilot: Sparkles,
 };
 
-export function ModuleIcon({ name, ...props }: LucideProps & { name: ModuleKey }) {
+export function ModuleIcon({
+    name,
+    ...props
+}: LucideProps & { name: ModuleKey }) {
     const Icon = moduleIcons[name];
 
     return <Icon {...props} />;
@@ -118,8 +131,24 @@ export function ModuleIcon({ name, ...props }: LucideProps & { name: ModuleKey }
 export function EyesIcon(props: IconProps) {
     return (
         <svg viewBox="0 0 32 24" {...props}>
-            <ellipse cx="10" cy="12" rx="5.5" ry="7.5" fill="none" stroke="currentColor" strokeWidth="2" />
-            <ellipse cx="22" cy="12" rx="5.5" ry="7.5" fill="none" stroke="currentColor" strokeWidth="2" />
+            <ellipse
+                cx="10"
+                cy="12"
+                rx="5.5"
+                ry="7.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+            />
+            <ellipse
+                cx="22"
+                cy="12"
+                rx="5.5"
+                ry="7.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+            />
             <circle cx="11.5" cy="13" r="2.4" fill="currentColor" />
             <circle cx="23.5" cy="13" r="2.4" fill="currentColor" />
         </svg>
@@ -152,11 +181,14 @@ export function TikTokIcon(props: IconProps) {
     );
 }
 
-export function LogoMark(props: IconProps) {
+export function LogoMark({ className }: { className?: string }) {
     return (
-        <svg viewBox="0 0 24 24" fill="none" {...props}>
-            <path d="M3 17c3-7 15-7 18 0" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-            <path d="M7 17v-3M12 17v-5M17 17v-3" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
-        </svg>
+        <img
+            src="/brand/symbol.png"
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            className={cn('object-contain', className)}
+        />
     );
 }
