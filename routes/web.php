@@ -121,6 +121,10 @@ Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')-
 
     // Scraper menu: one page per type (Beasiswa, Magang, Karier) with sources and hand-entered listings.
     Route::prefix('scraper')->name('scrapers.')->group(function () {
+        // Website directory: declared before {type} so "website" is never read as a type.
+        Route::get('website', [Admin\DiscoveredSiteController::class, 'index'])->name('sites.index');
+        Route::post('website/jalankan', [Admin\DiscoveredSiteController::class, 'run'])->name('sites.run');
+        Route::patch('website/{discoveredSite}', [Admin\DiscoveredSiteController::class, 'update'])->name('sites.update');
         Route::controller(Admin\ScrapeSourceController::class)->group(function () {
             Route::get('{type}', 'index')->whereIn('type', Admin\ScrapeSourceController::TYPES)->name('index');
             Route::post('{type}/sumber', 'store')->whereIn('type', Admin\ScrapeSourceController::TYPES)->name('store');

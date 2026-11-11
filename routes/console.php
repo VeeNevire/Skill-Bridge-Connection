@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\OpportunityType;
+use App\Jobs\DiscoverSites;
 use App\Jobs\RunScraper;
 use App\Models\ScrapeSource;
 use Illuminate\Foundation\Inspiring;
@@ -17,3 +19,10 @@ Schedule::call(function () {
         $source->forceFill(['next_run_at' => $source->nextRunAfter(now())])->saveQuietly();
     });
 })->name('scrape-sources')->everyMinute()->withoutOverlapping();
+
+// Monthly AI search for websites that run scholarship, internship or job programs; admins approve them in /admin/scraper/website.
+Schedule::call(function () {
+    foreach ([OpportunityType::Scholarship, OpportunityType::Internship, OpportunityType::Job] as $type) {
+        DiscoverSites::dispatch($type);
+    }
+})->name('discover-sites')->monthlyOn(1, '03:00')->timezone(ScrapeSource::TIMEZONE);

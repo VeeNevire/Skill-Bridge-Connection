@@ -56,6 +56,41 @@ class HermesClient
             Log::warning('Hermes: '.$e->getMessage());
             throw new RuntimeException($this->friendlyError($e->getMessage()), 0, $e);
         }
+
+        return $this->items($output, 'Jawaban AI bukan daftar peluang yang valid.');
+    }
+
+    /**
+     * Ask the agent for websites that regularly publish one type of opportunity.
+     *
+     * @return list<mixed>
+     */
+    public function discoverSites(string $typeLabel): array
+    {
+        $prompt = <<<PROMPT
+        Cari di internet website resmi dan terpercaya yang rutin membuka atau mempublikasikan program {$typeLabel} untuk pelajar, mahasiswa, dan lulusan baru di Indonesia.
+        Utamakan situs penyelenggara asli (pemerintah, kampus, yayasan, perusahaan) dan portal agregator yang kredibel.
+        Kembalikan HANYA JSON valid tanpa teks lain, maksimal 20 item, dengan format:
+        {"items":[{"name":"nama website/penyelenggara","url":"https://domain-utama","description":"1 kalimat tentang program yang ditawarkan"}]}
+        PROMPT;
+
+        try {
+            $output = $this->run($prompt, 540);
+        } catch (Throwable $e) {
+            Log::warning('Hermes: '.$e->getMessage());
+            throw new RuntimeException($this->friendlyError($e->getMessage()), 0, $e);
+        }
+
+        return $this->items($output, 'Jawaban AI bukan daftar website yang valid.');
+    }
+
+    /**
+     * Pull the `items` list out of an agent reply, which may be an array or JSON wrapped in prose.
+     *
+     * @return list<mixed>
+     */
+    private function items(mixed $output, string $error): array
+    {
         if (is_array($output) && is_string($output['output'] ?? null)) {
             $output = $output['output'];
         }
@@ -67,7 +102,7 @@ class HermesClient
         }
         $items = is_array($output) ? ($output['items'] ?? null) : null;
         if (! is_array($items)) {
-            throw new RuntimeException('Jawaban AI bukan daftar peluang yang valid.');
+            throw new RuntimeException($error);
         }
 
         return array_values($items);

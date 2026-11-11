@@ -40,7 +40,7 @@ class RunScraper implements ShouldQueue
                     [
                         'type' => $this->source->type,
                         'title' => $item['title'],
-                        'summary' => $item['summary'],
+                        'summary' => $item['summary'] ?? $this->defaultSummary($item['organizer']),
                         'deadline' => $item['deadline'],
                         'details' => array_filter(['penyelenggara' => $item['organizer']]) ?: null,
                         'accepts_applications' => false,
@@ -54,6 +54,15 @@ class RunScraper implements ShouldQueue
             $this->source->forceFill(['last_status' => 'gagal', 'last_error' => str($e->getMessage())->limit(1000)->toString(), 'last_count' => 0]);
         }
         $this->source->forceFill(['last_run_at' => now()])->save();
+    }
+
+    /** Polite, inviting fallback text for listings whose page gave no summary. */
+    private function defaultSummary(?string $organizer): string
+    {
+        $label = mb_strtolower($this->source->type->label());
+        $by = $organizer ?: $this->source->name;
+
+        return "Kesempatan {$label} dari {$by} kini terbuka untuk Anda. Pelajari persyaratannya dengan saksama dan jangan ragu untuk segera mendaftar sebelum pendaftaran ditutup. Semoga sukses!";
     }
 
     /**
