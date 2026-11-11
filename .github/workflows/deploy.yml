@@ -47,7 +47,10 @@ jobs:
             cd ${{ secrets.SERVER_PATH }}
 
             echo "Pull code"
-            git pull origin main
+            # file generated (dibuat ulang oleh npm) dibuang dulu supaya git pull tidak gagal
+            git checkout -- package-lock.json 2>/dev/null || true
+            git fetch --prune origin main
+            git pull --ff-only origin main
 
             echo "Install composer"
             composer install --no-dev --optimize-autoloader --no-interaction
@@ -61,7 +64,8 @@ jobs:
             node -v
 
             echo "Install node modules"
-            npm install
+            # npm ci: install deterministik sesuai package-lock.json, tidak pernah menulis ulang lockfile
+            npm ci --no-audit --no-fund
 
             echo "Migrate"
             php artisan migrate --force
