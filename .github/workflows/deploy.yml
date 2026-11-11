@@ -49,6 +49,8 @@ jobs:
             echo "Pull code"
             # file generated (dibuat ulang oleh npm) dibuang dulu supaya git pull tidak gagal
             git checkout -- package-lock.json 2>/dev/null || true
+            # abaikan perubahan mode file (efek chmod) agar tidak pernah menghalangi git pull
+            git config core.fileMode false
             git fetch --prune origin main
             git pull --ff-only origin main
 
@@ -88,8 +90,10 @@ jobs:
             php artisan view:cache
 
             echo "Permission"
-            chmod -R 777 storage bootstrap/cache
             chown -R www-data:www-data storage bootstrap/cache
+            # 775/664 (bukan 777) supaya file tidak dapat bit executable dan tidak mengotori git
+            find storage bootstrap/cache -type d -exec chmod 775 {} \;
+            find storage bootstrap/cache -type f -exec chmod 664 {} \;
 
             echo "Restart PHP & Nginx"
             sudo systemctl restart php8.3-fpm
