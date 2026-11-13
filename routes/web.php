@@ -98,6 +98,7 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 Route::middleware(['auth', 'active', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', Admin\DashboardController::class)->name('dashboard');
+    Route::get('cari', Admin\SearchController::class)->name('search');
 
     Route::get('pengguna', [Admin\UserController::class, 'index'])->name('users.index');
     Route::post('pengguna', [Admin\UserController::class, 'store'])->name('users.store');

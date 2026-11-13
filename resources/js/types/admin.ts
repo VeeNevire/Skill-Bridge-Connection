@@ -37,6 +37,10 @@ export type AdminBadges = {
     verification: number;
     moderation: number;
     reports: number;
+    /** Active scrape sources whose last run failed. */
+    scraperFailing: number;
+    /** Most recent run of any source, as an ISO 8601 timestamp. */
+    scraperLastRunAt: string | null;
 };
 
 export type UserStats = {

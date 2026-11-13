@@ -9,7 +9,9 @@ use App\Models\ContentReport;
 use App\Models\MentorProfile;
 use App\Models\Opportunity;
 use App\Models\Organization;
+use App\Models\ScrapeSource;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -24,9 +26,9 @@ class AdminStats
     private const KEYS = ['admin.badges', 'admin.user-stats', 'admin.analytics', 'admin.analytics.extra'];
 
     /**
-     * Pending counts for the sidebar badges.
+     * Pending counts for the sidebar badges, plus scraper health for its status dot.
      *
-     * @return array{verification: int, moderation: int, reports: int}
+     * @return array{verification: int, moderation: int, reports: int, scraperFailing: int, scraperLastRunAt: string|null}
      */
     public static function badges(): array
     {
@@ -34,6 +36,9 @@ class AdminStats
             'verification' => Organization::query()->pending()->count() + MentorProfile::query()->pending()->count(),
             'moderation' => Opportunity::query()->pending()->count(),
             'reports' => ContentReport::query()->where('status', ReportStatus::Open)->count(),
+            'scraperFailing' => ScrapeSource::query()->where('is_active', true)->where('last_status', 'gagal')->count(),
+            // max() returns the raw column; send ISO 8601 so the browser reads the timezone right.
+            'scraperLastRunAt' => ($last = ScrapeSource::query()->max('last_run_at')) ? Carbon::parse($last)->toIso8601String() : null,
         ]);
     }
 
