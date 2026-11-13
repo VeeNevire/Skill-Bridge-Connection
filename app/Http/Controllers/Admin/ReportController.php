@@ -24,6 +24,7 @@ class ReportController extends Controller
         $filters = $request->validate([
             'status' => ['nullable', Rule::enum(ReportStatus::class)],
             'severity' => ['nullable', Rule::enum(ReportSeverity::class)],
+            'q' => ['nullable', 'string', 'max:100'],
         ]);
 
         $status = $filters['status'] ?? ReportStatus::Open->value;
@@ -33,6 +34,8 @@ class ReportController extends Controller
             ->with(['opportunity:id,type,title,status', 'reporter:id,name'])
             ->where('status', $status)
             ->when($filters['severity'] ?? null, fn ($q, string $severity) => $q->where('severity', $severity))
+            ->when($filters['q'] ?? null, fn ($q, string $term) => $q->where(fn ($w) => $w->where('reason', 'like', "%{$term}%")
+                ->orWhereHas('opportunity', fn ($o) => $o->where('title', 'like', "%{$term}%"))))
             ->latest()
             ->paginate(12)
             ->withQueryString();

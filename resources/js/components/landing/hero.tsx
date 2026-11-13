@@ -175,7 +175,8 @@ export function Hero() {
     const contentScale = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
 
     return (
-        <section ref={ref} className="relative overflow-hidden bg-white pt-28 pb-24 sm:pt-32 sm:pb-32 lg:flex lg:min-h-svh lg:flex-col lg:justify-center 2xl:pt-36">
+        // White fading into the page surface, so the hero blends into the gray sections below instead of ending on a hard edge.
+        <section ref={ref} className="relative overflow-hidden bg-linear-to-b from-white from-55% to-surface pt-28 pb-24 sm:pt-32 sm:pb-32 lg:flex lg:min-h-svh lg:flex-col lg:justify-center 2xl:pt-36">
             <motion.div style={{ opacity: contentOpacity, scale: contentScale }} className="px-4">
                 <motion.div style={{ y: networkY }}>
                     <motion.div initial={{ y: 70 }} animate={{ y: 0 }} transition={{ duration: 1, delay: 0.5, ease: easeOut }}>

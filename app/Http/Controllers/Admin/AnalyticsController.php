@@ -18,6 +18,8 @@ class AnalyticsController extends Controller
 {
     /**
      * Every figure here is a grouped aggregate; the whole set is cached for ten minutes.
+     * Only plain arrays go in the cache: objects come back as __PHP_Incomplete_Class
+     * because config/cache.php disallows unserializing classes.
      */
     public function __invoke(): Response
     {
@@ -26,7 +28,8 @@ class AnalyticsController extends Controller
                 ->selectRaw('status, count(*) as total')
                 ->groupBy('status')
                 ->pluck('total', 'status')
-                ->map(fn ($n) => (int) $n),
+                ->map(fn ($n) => (int) $n)
+                ->all(),
             'verifiedPartners' => Organization::query()->where('status', ReviewStatus::Approved)->count(),
             'verifiedMentors' => MentorProfile::query()->where('status', ReviewStatus::Approved)->count(),
             'topCategories' => Category::query()
@@ -34,7 +37,8 @@ class AnalyticsController extends Controller
                 ->withCount('opportunities')
                 ->orderByDesc('opportunities_count')
                 ->limit(6)
-                ->get(),
+                ->get()
+                ->toArray(),
             'openReports' => ContentReport::query()->where('status', ReportStatus::Open)->count(),
         ]);
 
